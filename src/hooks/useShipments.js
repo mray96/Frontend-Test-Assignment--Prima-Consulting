@@ -1,6 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchShipments } from '../api/shipments';
 
+function formatMonthLabel(dateValue) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(`${dateValue}T00:00:00`));
+}
+
+function buildMonthOptions(shipments) {
+  const seen = new Map();
+
+  for (const shipment of shipments) {
+    const value = shipment.date.slice(0, 7);
+    if (!seen.has(value)) {
+      seen.set(value, formatMonthLabel(shipment.date));
+    }
+  }
+
+  return Array.from(seen.entries())
+    .map(([value, label]) => ({ value, label }))
+    .sort((a, b) => b.value.localeCompare(a.value));
+}
+
 export function useShipments() {
   const [shipments, setShipments] = useState([]);
   const [stats, setStats] = useState(null);
@@ -61,26 +83,10 @@ export function useShipments() {
   }, [shipments, statusFilter, categoryFilter, monthFilter]);
 
   const options = useMemo(() => {
-    const months = Array.from(
-      new Map(
-        shipments.map((shipment) => {
-          const value = shipment.date.slice(0, 7);
-          const label = new Intl.DateTimeFormat('en-US', {
-            month: 'long',
-            year: 'numeric',
-          }).format(new Date(`${shipment.date}T00:00:00`));
-
-          return [value, label];
-        }),
-      ).entries(),
-    )
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => b.value.localeCompare(a.value));
-
     return {
       statuses: Array.from(new Set(shipments.map((shipment) => shipment.status))).sort(),
       categories: Array.from(new Set(shipments.map((shipment) => shipment.product_category))).sort(),
-      months,
+      months: buildMonthOptions(shipments),
     };
   }, [shipments]);
 

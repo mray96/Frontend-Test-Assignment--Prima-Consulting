@@ -7,8 +7,12 @@ import Sidebar from './components/Sidebar/Sidebar';
 import StatCard from './components/StatCard/StatCard';
 import { useShipments } from './hooks/useShipments';
 
-function buildStats(stats) {
-  return [
+export default function App() {
+  const shipmentsState = useShipments();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const stats = shipmentsState.stats;
+  const statCards = [
     {
       label: 'Total Shipments',
       value: stats?.total_shipments || 0,
@@ -38,13 +42,6 @@ function buildStats(stats) {
       caption: 'Up by 23% than this week',
     },
   ];
-}
-
-export default function App() {
-  const shipmentsState = useShipments();
-  const statCards = buildStats(shipmentsState.stats);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     function handleResize() {
